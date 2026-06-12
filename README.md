@@ -114,31 +114,6 @@ Saved Notes
 ├── README.md
 └── requirements.txt
 ```
-
-### app.py
-
-Contains:
-
-* Flask server
-* HTML user interface
-* API endpoints
-* Notes persistence
-* Flashcard generation
-* Quiz generation
-* Mind map rendering
-* Misconception analysis
-
-### backend.py
-
-Contains:
-
-* Qwen model loading
-* Processor loading
-* OCR pipeline
-* Gemini client creation
-* OCR correction utilities
-* Shared AI helper functions
-
 ---
 
 # Requirements
