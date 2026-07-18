@@ -1,8 +1,4 @@
 """
-Install:
-    pip install transformers accelerate qwen-vl-utils google-genai
-    pip install torch torchvision  # or follow pytorch.org for your CUDA version
-
 Local setup:
     - Set QWEN_MODEL_PATH to a Hugging Face model id or a local model directory.
     - Set GEMINI_API_KEY if you want the optional post-correction step.
@@ -11,44 +7,54 @@ Example:
     QWEN_MODEL_PATH="Qwen/Qwen2.5-VL-7B-Instruct"
     GEMINI_API_KEY="your-key"
 """
-import os
 
+import os
 import torch
 import google.genai as genai
 from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor, BitsAndBytesConfig
 from qwen_vl_utils import process_vision_info
 
 # ── Config ────────────────────────────────────────────────────────────────────
+# Set the GEMINI MODEL you want
 GEMINI_MODEL   = "gemini-2.5-flash"
 
 # Model options (pick one):
-#   "Qwen/Qwen2.5-VL-7B-Instruct"   — best accuracy, needs ~16GB VRAM (Kaggle T4/P100)
+#   "Qwen/Qwen2.5-VL-7B-Instruct"   — best accuracy, needs ~16GB VRAM
 #   "Qwen/Qwen2.5-VL-3B-Instruct"   — good accuracy, needs ~8GB VRAM
 #   "Qwen/Qwen2.5-VL-2B-Instruct"   — lighter, runs on CPU (slow but works)
 
 model_path = os.getenv("QWEN_MODEL_PATH", "Qwen/Qwen2.5-VL-7B-Instruct")
 
 def get_qwen():
-    # Use 4-bit quantization to fit larger models in less VRAM (with some accuracy tradeoff).
-    quantization_config = BitsAndBytesConfig(
-        load_in_4bit=True,
-        bnb_4bit_compute_dtype=torch.float16
-    )
+    if torch.cuda.is_available():
+        # Using 4-bit quantization to fit larger models in less VRAM (with some accuracy tradeoff).
+        quantization_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_compute_dtype=torch.float16
+        )
+    else:
+        quantization_config = None
+
+    kwargs = {"device_map": "auto"}
+    if quantization_config:
+        kwargs["quantization_config"] = quantization_config
+    else:
+        kwargs["torch_dtype"] = torch.float32
     
     print(f"Loading {model_path}...")
     qwen_model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
         model_path,
-        quantization_config=quantization_config,
-        # torch_dtype=torch.bfloat16,   # bfloat16 saves VRAM, no accuracy loss
-        device_map="auto",            # auto-assigns to GPU if available, else CPU
+        low_cpu_mem_usage=True,
+        **kwargs
     )
     return qwen_model
-# qwen_model.save_pretrained(save_path)
 
 def get_processor():
     qwen_processor = AutoProcessor.from_pretrained(model_path)
     return qwen_processor
-# qwen_processor.save_pretrained(save_path)
+
+qwen_model = get_qwen()
+qwen_processor = get_processor()
 
 def get_gemini_client():
     sec_val = os.getenv("GEMINI_API_KEY")
@@ -58,7 +64,7 @@ def get_gemini_client():
     client = genai.Client(api_key=sec_val)
     return client
 
-print("Model loaded.\n")
+client = get_gemini_client()
 
 # ── Step 1: Qwen2.5-VL transcription:
 def transcribe_with_qwen(qwen_model, qwen_processor, image_path: str) -> list[str]:
@@ -92,6 +98,7 @@ def transcribe_with_qwen(qwen_model, qwen_processor, image_path: str) -> list[st
         messages, tokenize=False, add_generation_prompt=True
     )
     image_inputs, video_inputs = process_vision_info(messages)
+    
     inputs = qwen_processor(
         text=[text_prompt],
         images=image_inputs,
@@ -104,7 +111,7 @@ def transcribe_with_qwen(qwen_model, qwen_processor, image_path: str) -> list[st
     with torch.no_grad():
         output_ids = qwen_model.generate(
             **inputs,
-            max_new_tokens=512,
+            max_new_tokens=1024,
             do_sample=False,       # greedy — most consistent for OCR
         )
 
@@ -113,6 +120,7 @@ def transcribe_with_qwen(qwen_model, qwen_processor, image_path: str) -> list[st
         out[len(inp):]
         for inp, out in zip(inputs.input_ids, output_ids)
     ]
+    
     raw_output = qwen_processor.batch_decode(
         generated_ids,
         skip_special_tokens=True,
@@ -130,7 +138,6 @@ def correct_with_llm(raw_lines: list[str]) -> list[str]:
     Post-correct Qwen output with Gemini.
     mainly catches proper nouns and rare character confusions.
     """
-    client = get_gemini_client()
     if not client:
         return raw_lines
 
@@ -156,7 +163,14 @@ TASK:
 OCR OUTPUT:
 {numbered_text}"""
 
-    response = client.models.generate_content(model=GEMINI_MODEL, contents=prompt)
+    try:
+        response = client.models.generate_content(model=GEMINI_MODEL, contents=prompt)
+    except Exception as e:
+        print(e)
+        return raw_lines
+
+    if not response.text:
+        return raw_lines
     corrected_raw = response.text.strip()
 
     # Parse numbered lines back to a list
@@ -197,11 +211,11 @@ def recognize(image_path: str, use_llm: bool = True) -> str:
       Total: 1 API call
     """
     print(f"Processing: {image_path}\n")
+    
+    print("Model loaded.\n")
 
     # --- Qwen transcription (local, no API) ---
     print("Step 1: Qwen2.5-VL transcription...")
-    qwen_model = get_qwen()
-    qwen_processor = get_processor()
     raw_lines = transcribe_with_qwen(qwen_model, qwen_processor, image_path)
 
     print(f"  Detected {len(raw_lines)} lines\n")
@@ -233,4 +247,6 @@ def recognize(image_path: str, use_llm: bool = True) -> str:
 if __name__ == "__main__":
     # Change to your image path:
     image_path = "your_image.jpg"
+    if not os.path.exists(image_path):
+        raise FileNotFoundError(image_path)
     recognize(image_path)
