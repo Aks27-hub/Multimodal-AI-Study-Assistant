@@ -161,19 +161,19 @@ export GEMINI_API_KEY=your_key_here
 Default:
 
 ```text
-Qwen/Qwen2.5-VL-3B-Instruct
+Qwen/Qwen2.5-VL-7B-Instruct
 ```
 
 Override:
 
 ```bash
-export QWEN_MODEL_PATH=Qwen/Qwen2.5-VL-7B-Instruct
+export QWEN_MODEL_PATH=Qwen/Qwen2.5-VL-(2/3)B-Instruct
 ```
 
 or
 
 ```powershell
-set QWEN_MODEL_PATH=Qwen/Qwen2.5-VL-7B-Instruct
+set QWEN_MODEL_PATH=Qwen/Qwen2.5-VL-(2/3)B-Instruct
 ```
 
 ---
@@ -184,12 +184,6 @@ Start the application:
 
 ```bash
 python app.py
-```
-
-Default server:
-
-```text
-http://127.0.0.1:7860
 ```
 
 Open the URL in your browser.
