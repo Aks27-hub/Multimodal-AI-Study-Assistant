@@ -1,11 +1,8 @@
 """
-app.py — Inkwell (HTML Edition)
+app.py
 ════════════════════════════════════════════════════════════════
 Handwriting OCR pipeline using Qwen2.5-VL + Gemini,
 with a custom HTML UI served locally from Flask.
-
-Install:
-    pip install flask
 
 Run locally:
     python app.py
@@ -15,8 +12,8 @@ Environment:
     GEMINI_API_KEY    Gemini API key for correction / generation
 
 Default model:
-    Qwen/Qwen2.5-VL-3B-Instruct
-    Set QWEN_MODEL_PATH to 2B or 7B if you want a different size.
+    Qwen/Qwen2.5-VL-7B-Instruct
+    Set QWEN_MODEL_PATH to 2B or 3B if you want a different size.
 ════════════════════════════════════════════════════════════════
 """
 
@@ -29,7 +26,6 @@ from flask import Flask, jsonify, request
 from backend import *
 
 GEMINI_MODEL = "gemini-2.5-flash"
-# QWEN_MODEL_ID = os.getenv("QWEN_MODEL_PATH", "Qwen/Qwen2.5-VL-3B-Instruct")
 NOTES_FILE = Path(os.getenv("INKWELL_NOTES_FILE", "inkwell_notes.json"))
 
 flask_app = Flask(__name__)
@@ -84,7 +80,7 @@ def generate_flashcards(notes_state: list[dict]) -> list[dict]:
 
     client = get_gemini_client()
     if client is None:
-        raise RuntimeError("Set GEMINI_API_KEY or GOOGLE_API_KEY to generate flashcards.")
+        raise RuntimeError("Set GEMINI_API_KEY to generate flashcards.")
 
     prompt = f"""Based on these notes, generate 6-8 flashcards.
 Return ONLY a JSON array of objects with keys "front" and "back". No markdown.
@@ -105,7 +101,7 @@ def generate_quiz(notes_state: list[dict]) -> list[dict]:
 
     client = get_gemini_client()
     if client is None:
-        raise RuntimeError("Set GEMINI_API_KEY or GOOGLE_API_KEY to generate quiz questions.")
+        raise RuntimeError("Set GEMINI_API_KEY to generate quiz questions.")
 
     prompt = f"""Based on these notes, generate 5 multiple-choice questions.
 Return ONLY a JSON array with keys: "question", "options" (4 strings), "answer" (0-3), "explanation".
@@ -127,7 +123,7 @@ def generate_misconceptions(notes_state: list[dict]) -> list[dict]:
 
     client = get_gemini_client()
     if client is None:
-        raise RuntimeError("Set GEMINI_API_KEY or GOOGLE_API_KEY to generate misconceptions.")
+        raise RuntimeError("Set GEMINI_API_KEY to generate misconceptions.")
 
     prompt = f"""You are an expert teacher. Analyse these student notes for:
 1. Common misconceptions or errors in understanding
@@ -156,7 +152,7 @@ def generate_mindmap(notes_state: list[dict]) -> dict:
 
     client = get_gemini_client()
     if client is None:
-        raise RuntimeError("Set GEMINI_API_KEY or GOOGLE_API_KEY to generate a mind map.")
+        raise RuntimeError("Set GEMINI_API_KEY to generate a mind map.")
 
     prompt = f"""Based on these notes, extract a central topic and 4-7 main concepts with 2-4 sub-points each.
 Return ONLY JSON: {{"center": "string", "nodes": [{{"label": "string", "children": ["string"]}}]}}
