@@ -131,6 +131,7 @@ Python 3.10+
 ```bash
 pip install flask
 pip install torch torchvision accelerate transformers
+pip install bitsandbytes
 pip install google-genai
 pip install qwen-vl-utils
 ```
