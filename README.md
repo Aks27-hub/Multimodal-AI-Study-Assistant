@@ -1,79 +1,53 @@
 # Multimodal AI Study Assistant
 
-**Handwriting → Notes → Flashcards + Quiz + Mind Maps + Q/A**
+**Handwriting → Notes → RAG Assistant + Flashcards + Quiz + Mind Maps**
 
-This project is an AI-powered study assistant that converts handwritten notes into structured learning material. It uses **Qwen2.5-VL** for handwriting OCR and **Gemini** for intelligent post-processing and study-tool generation. It also allows for Q/A from the notes uploaded for clarifying doubts.
+This project is an AI-powered study assistant that converts handwritten notes into structured learning material. It uses **Qwen2.5-VL** for local handwriting OCR and **Gemini 3.5 Flash** for intelligent post-processing, RAG-backed Q/A search, and study-tool generation.
 
 ---
 
 ## Features
 
 ### ✍️ Handwriting OCR
-
-* Upload notebook images.
-* Uses **Qwen2.5-VL** to transcribe handwritten text.
-* Preserves line breaks and document structure.
+* Upload notebook page images.
+* Uses local **Qwen2.5-VL** to transcribe handwritten text natively.
+* Preserves line breaks and document structure[cite: 3].
 
 ### 🤖 AI Correction
-
-* Optional Gemini-powered OCR cleanup.
-* Fixes:
-
-  * OCR mistakes
-  * Character substitutions
-  * Misspelled words
-  * Formatting issues
+* Optional Gemini-powered post-correction pipeline.
+* Fixes OCR mistakes, improper noun transcription, character substitutions, and formatting errors[cite: 3].
 
 ### 📝 Notes Management
+* Save extracted text directly as study notes with auto-generated UUIDs.
+* Persistent local storage using JSON (`inkwell_notes.json`)[cite: 1, 2].
+* Automatic vector indexing into a local session database upon saving.
+* Delete individual notes or clear all session notes[cite: 1, 2].
 
-* Save extracted text as study notes.
-* Persistent local storage using JSON.
-* Delete individual notes.
-* Clear all notes.
+### 🔍 RAG Query System
+* Dual-stage Retrieval-Augmented Generation (RAG) assistant[cite: 1, 2].
+* Searches saved session notes via vector store first[cite: 1, 2].
+* Falls back to a global knowledge database if local results are insufficient[cite: 1, 2].
+* Contextual answers synthesized using Gemini 3.5 Flash.
 
 ### 🃏 Flashcard Generation
-
-Generate AI-powered flashcards from saved notes.
-
-Each flashcard contains:
-
-* Front (question)
-* Back (answer)
-
-Useful for active recall and spaced repetition.
+* Generates flashcards with front/back question pairs directly from saved notes using Gemini[cite: 1, 2].
+* Interactive flipping interface with progress tracking[cite: 1].
 
 ### ❓ Quiz Generation
+* Generates 5-option multiple-choice quizzes with explanations from note context[cite: 1, 2].
+* Tracks score, answered questions, and provides visual feedback[cite: 1, 2].
 
-Generate multiple-choice quizzes from notes.
+### 💡 Misconception & Gap Analysis
+* Analyzes notes for misconceptions, missing concepts, and ambiguous explanations[cite: 1, 2].
+* Provides targeted corrections and links back to note source context[cite: 1, 2].
 
-Each question contains:
+### 🗺️ Visual Mind Map
+* Automatically extracts central concepts and subtopics from notes.
+* Renders a dynamic, structured SVG mind map[cite: 1, 2].
 
-* Question
-* Four answer choices
-* Correct answer
-* Explanation
-
-### 🔍 Misconception Detection
-
-Gemini analyzes notes and identifies:
-
-* Misconceptions
-* Missing concepts
-* Ambiguous explanations
-* Areas needing clarification
-
-### 🗺️ Mind Map Generation
-
-Automatically creates a visual SVG mind map showing:
-
-* Central topic
-* Major concepts
-* Subtopics
-* Concept relationships
-
-### 🌐 Local Web Interface
-
-Built with Flask and a fully custom HTML/CSS/JavaScript frontend.
+### 🌐 Flask & HTML Interface
+* Served locally via Flask with Jinja template rendering.
+* Embedded styling and vanilla JavaScript frontend[cite: 1].
 
 ---
 
@@ -83,34 +57,30 @@ Built with Flask and a fully custom HTML/CSS/JavaScript frontend.
 Notebook Image
       │
       ▼
-Qwen2.5-VL OCR
+Qwen2.5-VL OCR (Local)
       │
       ▼
-Raw Text
+Gemini Post-Correction
       │
       ▼
-Gemini Correction
-      │
-      ▼
-Saved Notes
-      │
-      ├── Flashcards
+Saved Notes ──► ChromaDB Vector Store
+      │                │
+      ├── Flashcards   └──► RAG Engine ──► Gemini Q/A Synthesis
       ├── Quiz
-      ├── Misconception Analysis
+      ├── Misconceptions
       └── Mind Map
-```
-
----
 
 # Project Structure
 
 ```text
 .
-├── app.py
-├── backend.py
-├── inkwell_notes.json
-├── README.md
-└── requirements.txt
+├── app.py              # Flask server routes and API orchestration
+├── backend.py          # Qwen2.5-VL OCR & Gemini client pipeline
+├── rag_engine.py       # ChromaDB vector store search and retrieval logic
+├── templates/
+│   └── index.html      # UI template with dynamic JS frontend
+├── inkwell_notes.json  # Local JSON persistence for saved notes
+└── requirements.txt    # Project dependencies
 ```
 ---
 
@@ -134,6 +104,7 @@ pip install torch torchvision accelerate transformers
 pip install bitsandbytes
 pip install google-genai
 pip install qwen-vl-utils
+pip install chromadb
 ```
 
 ---
@@ -255,6 +226,14 @@ POST /api/notes/clear
 
 ---
 
+## RAG Generation
+
+```http
+POST /api/rag_query
+```
+
+---
+
 ## Generate Flashcards
 
 ```http
@@ -322,7 +301,7 @@ Example:
 
 ## Reasoning & Generation
 
-**Gemini 2.5 Flash**
+**Gemini 3.5 Flash**
 
 Used for:
 
@@ -331,6 +310,7 @@ Used for:
 * Quizzes
 * Misconception analysis
 * Mind maps
+* RAG Generation
 
 ---
 
