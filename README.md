@@ -1,8 +1,8 @@
 # Multimodal AI Study Assistant
 
-**Handwriting → Notes → Flashcards + Quiz + Mind Maps**
+**Handwriting → Notes → Flashcards + Quiz + Mind Maps + Q/A**
 
-This project is an AI-powered study assistant that converts handwritten notes into structured learning material. It uses **Qwen2.5-VL** for handwriting OCR and **Gemini** for intelligent post-processing and study-tool generation.
+This project is an AI-powered study assistant that converts handwritten notes into structured learning material. It uses **Qwen2.5-VL** for handwriting OCR and **Gemini** for intelligent post-processing and study-tool generation. It also allows for Q/A from the notes uploaded for clarifying doubts.
 
 ---
 
