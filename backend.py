@@ -16,14 +16,14 @@ from qwen_vl_utils import process_vision_info
 
 # ── Config ────────────────────────────────────────────────────────────────────
 # Set the GEMINI MODEL you want
-GEMINI_MODEL   = "gemini-2.5-flash"
+GEMINI_MODEL   = "gemini-3.5-flash"
 
 # Model options (pick one):
 #   "Qwen/Qwen2.5-VL-7B-Instruct"   — best accuracy, needs ~16GB VRAM
 #   "Qwen/Qwen2.5-VL-3B-Instruct"   — good accuracy, needs ~8GB VRAM
 #   "Qwen/Qwen2.5-VL-2B-Instruct"   — lighter, runs on CPU (slow but works)
 
-model_path = os.getenv("QWEN_MODEL_PATH", "Qwen/Qwen2.5-VL-7B-Instruct")
+model_path = os.getenv("QWEN_MODEL_PATH", "Qwen/Qwen2.5-VL-3B-Instruct")
 
 def get_qwen():
     if torch.cuda.is_available():
@@ -206,7 +206,7 @@ def recognize(image_path: str, use_llm: bool = True) -> str:
     Full pipeline: Qwen2.5-VL transcription → Gemini correction.
 
     API calls made per execution:
-      - Qwen2.5-VL: runs locally (0 API calls)
+      - Qwen2.5-VL: runs locally
       - Gemini correction: 1 API call (entire document in one request)
       Total: 1 API call
     """
