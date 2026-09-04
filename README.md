@@ -11,43 +11,43 @@ This project is an AI-powered study assistant that converts handwritten notes in
 ### ✍️ Handwriting OCR
 * Upload notebook page images.
 * Uses local **Qwen2.5-VL** to transcribe handwritten text natively.
-* Preserves line breaks and document structure[cite: 3].
+* Preserves line breaks and document structure.
 
 ### 🤖 AI Correction
 * Optional Gemini-powered post-correction pipeline.
-* Fixes OCR mistakes, improper noun transcription, character substitutions, and formatting errors[cite: 3].
+* Fixes OCR mistakes, improper noun transcription, character substitutions, and formatting errors.
 
 ### 📝 Notes Management
 * Save extracted text directly as study notes with auto-generated UUIDs.
-* Persistent local storage using JSON (`inkwell_notes.json`)[cite: 1, 2].
+* Persistent local storage using JSON (`inkwell_notes.json`).
 * Automatic vector indexing into a local session database upon saving.
-* Delete individual notes or clear all session notes[cite: 1, 2].
+* Delete individual notes or clear all session notes.
 
 ### 🔍 RAG Query System
-* Dual-stage Retrieval-Augmented Generation (RAG) assistant[cite: 1, 2].
-* Searches saved session notes via vector store first[cite: 1, 2].
-* Falls back to a global knowledge database if local results are insufficient[cite: 1, 2].
+* Dual-stage Retrieval-Augmented Generation (RAG) assistant.
+* Searches saved session notes via vector store first.
+* Falls back to a global knowledge database if local results are insufficient.
 * Contextual answers synthesized using Gemini 3.5 Flash.
 
 ### 🃏 Flashcard Generation
-* Generates flashcards with front/back question pairs directly from saved notes using Gemini[cite: 1, 2].
-* Interactive flipping interface with progress tracking[cite: 1].
+* Generates flashcards with front/back question pairs directly from saved notes using Gemini.
+* Interactive flipping interface with progress tracking.
 
 ### ❓ Quiz Generation
-* Generates 5-option multiple-choice quizzes with explanations from note context[cite: 1, 2].
-* Tracks score, answered questions, and provides visual feedback[cite: 1, 2].
+* Generates 5-option multiple-choice quizzes with explanations from note context.
+* Tracks score, answered questions, and provides visual feedback.
 
 ### 💡 Misconception & Gap Analysis
-* Analyzes notes for misconceptions, missing concepts, and ambiguous explanations[cite: 1, 2].
-* Provides targeted corrections and links back to note source context[cite: 1, 2].
+* Analyzes notes for misconceptions, missing concepts, and ambiguous explanations.
+* Provides targeted corrections and links back to note source context.
 
 ### 🗺️ Visual Mind Map
 * Automatically extracts central concepts and subtopics from notes.
-* Renders a dynamic, structured SVG mind map[cite: 1, 2].
+* Renders a dynamic, structured SVG mind map.
 
 ### 🌐 Flask & HTML Interface
 * Served locally via Flask with Jinja template rendering.
-* Embedded styling and vanilla JavaScript frontend[cite: 1].
+* Embedded styling and vanilla JavaScript frontend.
 
 ---
 
