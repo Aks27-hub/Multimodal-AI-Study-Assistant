@@ -1,7 +1,10 @@
 flask
 torch
 torchvision
+bitsandbytes
 accelerate
 transformers
 google-genai
 qwen-vl-utils
+chromadb
+sentence-transformers
